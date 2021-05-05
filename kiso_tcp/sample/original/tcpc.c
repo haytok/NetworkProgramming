@@ -1,25 +1,40 @@
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef WIN32
+#include <windows.h>
+#include <winsock.h>
+#define perror(_Z) fprintf(stderr, "%s error\n", _Z)
+#define herror(_Z) fprintf(stderr, "%s error\n", _Z)
+#define exit(_Z)   WSACleanup();exit(_Z)
+#define close(_Z)  closesocket(_Z);
+#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <string.h>
-#include <unistd.h>
+#endif
 
 #define BUFSIZE      1000
 #define DEFAULT_PORT 5320
-
-int main(int argc, char *argv[])
+main(int argc, char *argv[])
 {
     struct sockaddr_in server;
     char buf[BUFSIZE];
     int s, c, port;
     unsigned long address;
 
+#ifdef WIN32
+    WSADATA wsaData;
+    if (WSAStartup(0x0101, &wsaData) != 0) {
+        fprintf(stderr, "Winsock Error\n");
+        exit(1);
+    }
+#endif
+
     if (argc !=2 && argc != 3) {
-        fprintf(stderr, "UsageÔøΩF %s  hostname  [port]\n", argv[0]);
+        fprintf(stderr, "UsageÅF %s  hostname  [port]\n", argv[0]);
         exit(1);
     }
 

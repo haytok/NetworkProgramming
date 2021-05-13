@@ -16,6 +16,10 @@ int main()
     puts("not linux");
     #endif
 
+    #ifdef FORK_SERVER
+    puts("FORK_SERVER");
+    #endif
+
     #ifdef __GNUC__
     puts("GNUC");
     #endif

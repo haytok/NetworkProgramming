@@ -24,13 +24,15 @@
 - [C言語でLinux、Solaris向け処理を#ifdefで分岐](https://mokky14.hatenablog.com/entry/2013/05/29/113244)
 - [第14回 ヘッダファイルとプリプロセッサ指令](https://dev.grapecity.co.jp/support/powernews/column/clang/014/page02.htm)
 
-## 3 章で作成する UDP Client と UDP Server のプログラムを実装する際に必要なシステムコール
+
+## 3 章で作成する UDP Client のプログラムを実装する際に必要なシステムコール
 - [ ] select() (今回のプログラムでは、UDP のクライアント側で呼出されている。)
 - [ ] sendto()
 - [ ] recvfrom()
 - [ ] inet_addr()
 - [ ] gethostbyname()
 - [ ] getservbyname()
+- [ ] ntohs()
 
 ### select()
 - man を確認する。
@@ -303,4 +305,48 @@ DESCRIPTION
 RETURN VALUE
        The  getservent(),  getservbyname() and getservbyport() functions return a pointer to a statically allocated servent structure, or NULL if an error occurs or the
        end of the file is reached.
+```
+
+### ntohs()
+- man を確認する。
+
+```bash
+SYNOPSIS
+       #include <arpa/inet.h>
+
+       uint16_t ntohs(uint16_t netshort);
+
+DESCRIPTION
+       The ntohs() function converts the unsigned short integer netshort from network byte order to host byte order.
+```
+
+## 3 章で作成する UDP Server のプログラムを実装する際に必要なシステムコール
+- htonl()
+- bind()
+
+### bind()
+- man を確認する。
+- 以下の `bind()` の第二引数を確認すると、クライアント側の `sendto()` のように `sockaddr_in` 型のオブジェクトを作成する必要がある。
+
+```bash
+SYNOPSIS
+       #include <sys/types.h>          /* See NOTES */
+       #include <sys/socket.h>
+
+       int bind(int sockfd, const struct sockaddr *addr,
+                socklen_t addrlen);
+```
+
+### htonl(INADDR_ANY)
+- man を確認する。
+- Client 側のコードを書くときはお目にかからなかったコードであるが、これは、どのアドレスからリクエストが飛んできても処理をするという意味である。一方で、IP を指定すると、そのアドレス (から/へ) しか受け付けない設定である。
+
+```bash
+SYNOPSIS
+       #include <arpa/inet.h>
+
+       uint32_t htonl(uint32_t hostlong);
+
+DESCRIPTION
+       The htonl() function converts the unsigned integer hostlong from host byte order to network byte order.
 ```

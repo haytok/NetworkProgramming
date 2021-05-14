@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
         size = MSGSIZE;
       else if (sn - i <= 0)
         size = 0;
+      // 最後の細切れのメッセージ
       else
         size = sn - i;
       if (sendto(s,&send_buf[i],size,0,(struct sockaddr *)&client,len) < 0) {

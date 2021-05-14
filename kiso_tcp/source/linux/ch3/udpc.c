@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
   }
 
   /* サーバのIPアドレスを調べる */
+  // 第二引数に localhost で与えると、以下の処理が呼出される。
   if ((dst_ip = inet_addr(argv[DST_IP])) == INADDR_NONE) {
     struct hostent *he;  /* ホスト情報 */
 

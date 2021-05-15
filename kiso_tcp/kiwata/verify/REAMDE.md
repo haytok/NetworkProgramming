@@ -350,3 +350,7 @@ SYNOPSIS
 DESCRIPTION
        The htonl() function converts the unsigned integer hostlong from host byte order to network byte order.
 ```
+
+## 3 章で作成する TCP Server のプログラムを実装する際に必要なシステムコール
+- send
+- recv

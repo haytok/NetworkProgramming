@@ -351,6 +351,136 @@ DESCRIPTION
        The htonl() function converts the unsigned integer hostlong from host byte order to network byte order.
 ```
 
+## 3 章で作成する TCP Client のプログラムを実装する際に必要なシステムコール
+
 ## 3 章で作成する TCP Server のプログラムを実装する際に必要なシステムコール
-- send
-- recv
+- listen()
+- accept()
+- send()
+- recv()
+
+### listen()
+- man を確認する。
+- 第二引数の `backlog` は、接続保留中のキューの最大長を定義する。このパラメータで設定した値より大きい数の接続要求が来ると、クライアント側は `ECONNREFUSED` を受け取る。つまり、`accept` されるのを待っているソケットの数のことを表しているとも言える。
+
+```bash
+SYNOPSIS
+       #include <sys/types.h>          /* See NOTES */
+       #include <sys/socket.h>
+
+       int listen(int sockfd, int backlog);
+
+DESCRIPTION
+       listen()  marks  the  socket  referred  to  by  sockfd  as  a passive socket, that is, as a socket that will be used to accept incoming connection requests using
+       accept(2).
+
+       The sockfd argument is a file descriptor that refers to a socket of type SOCK_STREAM or SOCK_SEQPACKET.
+
+       The backlog argument defines the maximum length to which the queue of pending connections for sockfd may grow.  If a connection request arrives when the queue is
+       full,  the  client  may receive an error with an indication of ECONNREFUSED or, if the underlying protocol supports retransmission, the request may be ignored so
+       that a later reattempt at connection succeeds.
+
+RETURN VALUE
+       On success, zero is returned.  On error, -1 is returned, and errno is set appropriately.
+
+NOTES
+       To accept connections, the following steps are performed:
+
+           1.  A socket is created with socket(2).
+
+           2.  The socket is bound to a local address using bind(2), so that other sockets may be connect(2)ed to it.
+
+           3.  A willingness to accept incoming connections and a queue limit for incoming connections are specified with listen().
+
+           4.  Connections are accepted with accept(2).
+
+       POSIX.1 does not require the inclusion of <sys/types.h>, and this header file is not required on Linux.  However, some historical (BSD) implementations  required
+       this header file, and portable applications are probably wise to include it.
+
+       The  behavior  of the backlog argument on TCP sockets changed with Linux 2.2.  Now it specifies the queue length for completely established sockets waiting to be
+       accepted,  instead  of  the  number  of  incomplete  connection  requests.   The  maximum  length  of  the  queue  for  incomplete  sockets  can  be  set   using
+       /proc/sys/net/ipv4/tcp_max_syn_backlog.   When syncookies are enabled there is no logical maximum length and this setting is ignored.  See tcp(7) for more infor‐
+       mation.
+
+       If the backlog argument is greater than the value in /proc/sys/net/core/somaxconn, then it is silently truncated to that value; the default value in this file is
+       128.  In kernels before 2.4.25, this limit was a hard coded value, SOMAXCONN, with the value 128.
+```
+
+### accept()
+- man を確認する。
+
+```bash
+SYNOPSIS
+       #include <sys/types.h>          /* See NOTES */
+       #include <sys/socket.h>
+
+       int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+DESCRIPTION
+       The  accept()  system  call  is  used with connection-based socket types (SOCK_STREAM, SOCK_SEQPACKET).  It extracts the first connection request on the queue of pending connections for the listening socket, sockfd, creates a new connected socket, and returns a new file descriptor referring to that socket.  The newly created socket is not in the listening state.  The original socket sockfd is unaffected by this call.
+
+RETURN VALUE
+       On success, these system calls return a nonnegative integer that is a file descriptor for the accepted socket.  On error, -1 is returned, and errno is set appropriately.
+```
+
+### recv()
+- man を確認する。
+
+```bash
+SYNOPSIS
+       #include <sys/types.h>
+       #include <sys/socket.h>
+
+       ssize_t recv(int sockfd, void *buf, size_t len, int flags);
+
+DESCRIPTION
+       The  recv(), recvfrom(), and recvmsg() calls are used to receive messages from a socket.  They may be used to receive data on both connectionless and connection-
+       oriented sockets.  This page first describes common features of all three system calls, and then describes the differences between the calls.
+
+RETURN VALUE
+       These calls return the number of bytes received, or -1 if an error occurred.  In the event of an error, errno is set to indicate the error.
+```
+
+### send()
+- まず、いつも通りに man を確認する。
+
+```bash
+SYNOPSIS
+       #include <sys/types.h>
+       #include <sys/socket.h>
+
+       ssize_t send(int sockfd, const void *buf, size_t len, int flags);
+
+DESCRIPTION
+       The system calls send(), sendto(), and sendmsg() are used to transmit a message to another socket.
+
+       The  send()  call  may  be  used  only when the socket is in a connected state (so that the intended recipient is known).  The only difference between send() and
+       write(2) is the presence of flags.  With a zero flags argument, send() is equivalent to write(2).  Also, the following call
+
+           send(sockfd, buf, len, flags);
+
+       is equivalent to
+
+           sendto(sockfd, buf, len, flags, NULL, 0);
+
+       The argument sockfd is the file descriptor of the sending socket.
+
+       If sendto() is used on a connection-mode (SOCK_STREAM, SOCK_SEQPACKET) socket, the arguments dest_addr and addrlen are ignored (and  the  error  EISCONN  may  be
+       returned  when  they are not NULL and 0), and the error ENOTCONN is returned when the socket was not actually connected.  Otherwise, the address of the target is
+       given by dest_addr with addrlen specifying its size.  For sendmsg(), the address of the target is given by  msg.msg_name,  with  msg.msg_namelen  specifying  its
+       size.
+
+       For send() and sendto(), the message is found in buf and has length len.  For sendmsg(), the message is pointed to by the elements of the array msg.msg_iov.  The
+       sendmsg() call also allows sending ancillary data (also known as control information).
+
+       If the message is too long to pass atomically through the underlying protocol, the error EMSGSIZE is returned, and the message is not transmitted.
+
+       No indication of failure to deliver is implicit in a send().  Locally detected errors are indicated by a return value of -1.
+
+       When the message does not fit into the send buffer of the socket, send() normally blocks, unless the socket has been placed in nonblocking  I/O  mode.   In  non‐
+       blocking  mode  it  would  fail  with the error EAGAIN or EWOULDBLOCK in this case.  The select(2) call may be used to determine when it is possible to send more
+       data.
+
+RETURN VALUE
+       On success, these calls return the number of bytes sent.  On error, -1 is returned, and errno is set appropriately.
+```

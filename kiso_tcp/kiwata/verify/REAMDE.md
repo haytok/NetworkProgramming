@@ -484,3 +484,12 @@ DESCRIPTION
 RETURN VALUE
        On success, these calls return the number of bytes sent.  On error, -1 is returned, and errno is set appropriately.
 ```
+
+### listen() の第二引数の backlog パラメータについての検証
+- backlog パラメータはカーネルパラメータとして決まっていて、デフォルトでは 128 が設定されている。
+- ss コマンドを使用して backlog パラメータを変更した時に同時接続できるクライアント数がどれくらいになるのかを Python コードで検証している興味深い記事である。
+
+#### 参考
+- [Linuxのbacklogについて調べてみる](https://kazuhira-r.hatenablog.com/entry/2019/07/10/015733)
+- [ssコマンドのRecv-Qが、backlog＋1の値まで上がるのはどうして？](https://kazuhira-r.hatenablog.com/entry/2019/07/27/200040)
+- [コネクション型通信：サーバプログラムの作成](http://research.nii.ac.jp/~ichiro/syspro98/server.html)

@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
       if (send(s, send_head, hn, 0) < 0)
         break;
       send_head[hn] = '\0';
-      printf("%s\n", send_head);
+      printf("send_head %s\n", send_head);
 
       /* アプリケーションデータの送信 */
       if (send(s, send_data, dn, 0) < 0)

@@ -1,16 +1,3 @@
-/*****************************************************************
- *  TCPサンプルクライアントプログラム (tcpc.c)
- *        Ver 2.0 2004年 7月 10日
- *                                制作・著作 村山公保 (Yukio Murayama)
- *
- *  使用許諾書
- *    本プログラムは、TCP/IPプロトコルの学習、及び、ネットワークプロ
- *    グラミングの技能を向上させるためにのみ、そのまま、または、修正
- *    して使用することができます。本プログラムについて、法律で禁止さ
- *    れているか、または、公序良俗に反するような改造、及び、使用を禁
- *    止します。本プログラムは無保証です。制作者は本プログラムによっ
- *    て発生したいかなる損害についても責任を取ることはできません。
- ****************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -108,11 +95,6 @@ int main(int argc, char *argv[])
     if (strcmp(cmd, "") == 0)
       strcpy(send_buf, "help\n");
 
-#ifdef HTTP
-    strncat(send_buf, "Connection: keep-alive\n\n", BUFSIZE
-                                       - strlen(send_buf) - 1);
-#endif
-
     /* コマンドの送信 */
     if (send(s, send_buf, strlen(send_buf), 0) <= 0) {
       perror("send");
@@ -139,29 +121,17 @@ int main(int argc, char *argv[])
         i--;
       if (i == 0)  /* 空行の場合は、ヘッダが終わり、データ部が始まる */
         break;
+      
+      printf("recv_buf %s\n", recv_buf); // recv_buf Content-Length: 872
 
       /* ヘッダの解析処理 */
       recv_buf[i] = '\0';
       cmd1 = strtok(recv_buf, ": ");
       cmd2 = strtok(NULL, " \0");
-#ifdef DEBUG
-      printf("[%s, %s]\n", cmd1, cmd2);
-#endif
+
       if (strcmp("Content-Length", cmd1) == 0)
         len = atoi(cmd2);
     }
-
-#ifdef HTTP
-    if (len == -1) {
-      while ((n = recv(s, recv_buf, BUFSIZE - 1, 0)) > 0) {
-        recv_buf[n] = '\0';
-        printf("%s", recv_buf);
-        fflush(stdout);
-      }
-      close(s);
-      return 0;
-    }
-#endif
 
     /*
      * アプリケーションデータの受信、画面への出力

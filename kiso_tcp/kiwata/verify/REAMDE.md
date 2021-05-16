@@ -492,4 +492,6 @@ RETURN VALUE
 #### 参考
 - [Linuxのbacklogについて調べてみる](https://kazuhira-r.hatenablog.com/entry/2019/07/10/015733)
 - [ssコマンドのRecv-Qが、backlog＋1の値まで上がるのはどうして？](https://kazuhira-r.hatenablog.com/entry/2019/07/27/200040)
+
+- [Socket()とかBind()とかを理解する](https://qiita.com/Michinosuke/items/0778a5344bdf81488114)
 - [コネクション型通信：サーバプログラムの作成](http://research.nii.ac.jp/~ichiro/syspro98/server.html)

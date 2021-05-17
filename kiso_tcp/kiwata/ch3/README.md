@@ -39,6 +39,7 @@
 
 ### select()
 - man を確認する。
+- 第二引数の readfds には、recv や recvfrom による受信を検査する fd を指定する。
 
 ```bash
 SYNOPSIS
@@ -63,6 +64,43 @@ DESCRIPTION
        I/O operation (e.g., input possible).  A file descriptor is considered ready if it is possible to perform a corresponding I/O operation  (e.g.,  read(2)  without
        blocking, or a sufficiently small write(2)).
 
+EXAMPLE
+       #include <stdio.h>
+       #include <stdlib.h>
+       #include <sys/time.h>
+       #include <sys/types.h>
+       #include <unistd.h>
+
+       int
+       main(void)
+       {
+           fd_set rfds;
+           struct timeval tv;
+           int retval;
+
+           /* Watch stdin (fd 0) to see when it has input. */
+
+           FD_ZERO(&rfds);
+           FD_SET(0, &rfds);
+
+           /* Wait up to five seconds. */
+
+           tv.tv_sec = 5;
+           tv.tv_usec = 0;
+
+           retval = select(1, &rfds, NULL, NULL, &tv);
+           /* Don't rely on the value of tv now! */
+
+           if (retval == -1)
+               perror("select()");
+           else if (retval)
+               printf("Data is available now.\n");
+               /* FD_ISSET(0, &rfds) will be true. */
+           else
+               printf("No data within five seconds.\n");
+
+           exit(EXIT_SUCCESS);
+       }
 ```
 
 - `fd_set` は、ファイルディスクリプタの集合を表す。
@@ -674,6 +712,8 @@ main(int argc, char *argv[])
   - UDP Server の実装で必要なこと
     - sendto()
 - [ ] UDP Client 側で、固定のメッセージを送信するのではなく。標準入力から受け取った値を送信するように修正する。
+  - select() を使って標準入力とソケットの受信を選択するようにする。
+
 
 ### 実装途中でエラーが出た
 - Bad Address のエラーが生じた。`recvfrom()` の第二引数と第三引数の指定が悪かった。本通りに以下のように予め指定したサイズの領域を確保する必要があった。
@@ -689,7 +729,7 @@ recvfrom(s, recv_buf, )
   - [bdea34def25204c5b86df90097f3549e3ce4ef94](https://github.com/dilmnqvovpnmlib/NetworkProgramming/commit/bdea34def25204c5b86df90097f3549e3ce4ef94)
 
 - Phase 2
-
+  - [6e1b32cd5bc4fde595820a5a0c74ef0104e00bf6](https://github.com/dilmnqvovpnmlib/NetworkProgramming/commit/6e1b32cd5bc4fde595820a5a0c74ef0104e00bf6)
 
 - Phase 3
 

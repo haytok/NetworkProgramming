@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
         (rn = recvfrom(s, rcv_buf, BUF_SIZE - 1, 0, (struct sockaddr *) &client, (len = sizeof(client), &len))) >= 0
     ) {
         rcv_buf[rn] = '\0';
-        printf("rcv_buf %s\n", rcv_buf);
+        printf("In UDP Server, rcv_buf %s\n", rcv_buf);
 
         // UDP Client に送信処理
         char *send_buf = "send_buf";

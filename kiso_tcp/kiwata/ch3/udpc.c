@@ -9,6 +9,8 @@
 #include <arpa/inet.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <sys/select.h>
+#include <sys/time.h>
 
 #define DEFAULT_PORT 5320
 #define BUF_SIZE 32768
@@ -59,16 +61,43 @@ int main(int argc, char **argv) {
         //     // padding のメンバもある。
         // }
         struct sockaddr_in server;
-        memset(&server, 0, sizeof(struct sockaddr_in));
-        server.sin_family = AF_INET;
-        server.sin_addr.s_addr = dest_ip;
-        server.sin_port = htons(port);
+        fd_set rfds;
+        struct timeval tv;
 
-        char *buf = "Hello";
-        size_t len = strlen(buf);
-        // sendto の第五引数のキャストを忘れずに。
-        if (sendto(s, buf, len, 0, (struct sockaddr *) &server, sizeof(server)) < 0) {
-            die("sendto");
+        // select() に必要なオブジェクトを作成する。
+        FD_ZERO(&rfds);
+        FD_SET(STDIN_FILENO, &rfds);
+        FD_SET(s, &rfds);
+
+        tv.tv_sec = 600;
+        tv.tv_usec = 0;
+
+        if (select(s + 1, &rfds, NULL, NULL, &tv) < 0) {
+            fprintf(stderr, "\nTime Out\n");
+            break;
+        }
+
+        if (FD_ISSET(STDIN_FILENO, &rfds)) {
+            int readn;
+            char buf[BUF_SIZE];
+            char cmd[BUF_SIZE];
+            if ((readn = read(STDIN_FILENO, buf, BUF_SIZE - 1)) <= 0) {
+                break;
+            }
+            buf[readn] = '\0';
+            sscanf(buf, "%s", cmd);
+            if (strcmp(cmd, "quit") == 0) {
+                break;
+            }
+            memset(&server, 0, sizeof(struct sockaddr_in));
+            server.sin_family = AF_INET;
+            server.sin_addr.s_addr = dest_ip;
+            server.sin_port = htons(port);
+            // sendto の第五引数のキャストを忘れずに。
+            printf("In UDP Client, sendmsg %s\n", buf);
+            if (sendto(s, buf, readn, 0, (struct sockaddr *) &server, sizeof(server)) < 0) {
+                die("sendto");
+            }
         }
 
         // man で確認
@@ -84,13 +113,16 @@ int main(int argc, char **argv) {
         // この場合、addrlen は入出力両方の引数となる。
         // 呼び出し前に、呼び出し元は src_addr に割り当てたバッファで初期化しておくべきである。
         // 呼び出し元が送信アドレスを必要としない場合には、src_addr と addrlen には NULL を指定するべきである。
-        ssize_t n;
-        char *recv_buf[BUF_SIZE];
-        int zero = 0;
-        if ((n = recvfrom(s, recv_buf, BUF_SIZE, 0, (struct sockaddr *) 0, &zero)) < 0) {
-            die("recvfrom");
+        if (FD_ISSET(s, &rfds)) {
+            ssize_t n;
+            char recv_buf[BUF_SIZE];
+            int zero = 0;
+            if ((n = recvfrom(s, recv_buf, BUF_SIZE, 0, (struct sockaddr *) 0, &zero)) < 0) {
+                die("recvfrom");
+            }
+            recv_buf[n] = '\0';
+            printf("In UDP Client, recv_buf %s\n", recv_buf);
         }
-        printf("recv_buf %s/n", recv_buf);
     }
     close(s);
 

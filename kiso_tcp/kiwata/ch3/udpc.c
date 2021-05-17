@@ -38,7 +38,8 @@ int main(int argc, char **argv) {
 
     while (true) {
         // bind は必要ない。
-        // 理由は、socket にサーバーのアドレスやポート番号などの情報を紐付けるからである。
+        // 理由は、socket にサーバーのアドレスやポート番号などの情報を能動的に紐付ける必要が無いからである。
+        // もう少し突っ込んだ解説は README.md に記述した。
 
         // man で確認
         // ssize_t sendto(
@@ -60,7 +61,7 @@ int main(int argc, char **argv) {
         memset(&server, 0, sizeof(struct sockaddr_in));
         server.sin_family = AF_INET;
         server.sin_addr.s_addr = dest_ip;
-        server.sin_port = port;
+        server.sin_port = htons(port);
 
         char *buf = "Hello";
         size_t len = strlen(buf);

@@ -590,3 +590,65 @@ FILES
        /etc/services
               services database file
 ```
+
+## クライアント側で bind() を行うかどうかについて
+- 書籍 p.101, p.108 に記述がある。
+- UCP, TCP で通信をする際に、クライアント側では bind() を省略するのが一般的である。
+- クライアント側のポート番号は、最初に sendto() / send() した段階で OS が自動的に割り当てる。ただし、IP アドレスは固定されない。
+- NIC が複数ある時や IP アドレスが複数紐付けられている時は、ネットワークの状態などにより送信する始点 IP アドレスが変化する場合がある。
+- 変化させたくない時には、クライアントでも sendto() / send() する前に bind() を使用して、パケットの送受信に使用する IP アドレスやポート番号を指定することができる。
+
+## bind() のマニュアルに Example がある
+
+```c
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#define MY_SOCK_PATH "/somepath"
+#define LISTEN_BACKLOG 50
+
+#define handle_error(msg) \
+       do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+int
+main(int argc, char *argv[])
+{
+       int sfd, cfd;
+       struct sockaddr_un my_addr, peer_addr;
+       socklen_t peer_addr_size;
+
+       sfd = socket(AF_UNIX, SOCK_STREAM, 0);
+       if (sfd == -1)
+              handle_error("socket");
+
+       memset(&my_addr, 0, sizeof(struct sockaddr_un));
+                            /* Clear structure */
+       my_addr.sun_family = AF_UNIX;
+       strncpy(my_addr.sun_path, MY_SOCK_PATH,
+              sizeof(my_addr.sun_path) - 1);
+
+       if (bind(sfd, (struct sockaddr *) &my_addr,
+              sizeof(struct sockaddr_un)) == -1)
+              handle_error("bind");
+
+       if (listen(sfd, LISTEN_BACKLOG) == -1)
+              handle_error("listen");
+
+       /* Now we can accept incoming connections one
+       at a time using accept(2) */
+
+       peer_addr_size = sizeof(struct sockaddr_un);
+       cfd = accept(sfd, (struct sockaddr *) &peer_addr,
+                     &peer_addr_size);
+       if (cfd == -1)
+              handle_error("accept");
+
+       /* Code to deal with incoming connection(s)... */
+
+       /* When no longer required, the socket pathname, MY_SOCK_PATH
+       should be deleted using unlink(2) or remove(3) */
+}
+```

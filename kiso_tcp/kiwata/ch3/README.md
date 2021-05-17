@@ -33,6 +33,9 @@
 - [ ] gethostbyname()
 - [ ] getservbyname()
 - [ ] ntohs()
+- setsockopt()
+- gethostbyaddr()
+- getservbyport()
 
 ### select()
 - man を確認する。
@@ -186,6 +189,7 @@ RETURN VALUE
 ### inet_addr()
 - man を確認する。
 - つまり、IP アドレスからネットワークバイトオーダのバイナリに変換する。適切に変換できない時は、`INADDR_NONE` が返る。
+- 少し別の言い方をすると、この関数は、人間にとって可読性のある 192.168.11.6 などの IP アドレスをプロトコルスタックで必要なネットワークバイトオーダのバイナリに変換するためのライブラリ関数である。
 
 ```c
 SYNOPSIS
@@ -495,3 +499,94 @@ RETURN VALUE
 
 - [Socket()とかBind()とかを理解する](https://qiita.com/Michinosuke/items/0778a5344bdf81488114)
 - [コネクション型通信：サーバプログラムの作成](http://research.nii.ac.jp/~ichiro/syspro98/server.html)
+
+
+### setsockopt()
+- man を確認する。
+- サーバーで同じポート番号で bind を繰り返すとエラーが出る。`setsockopt` を使うと、このエラーをエスケープすることができる。
+- また、書籍では、TCP のウィンドウサイズを変更する際にも使用できると記述があった。
+
+```bash
+SYNOPSIS
+       #include <sys/types.h>          /* See NOTES */
+       #include <sys/socket.h>
+
+       int getsockopt(int sockfd, int level, int optname,
+                      void *optval, socklen_t *optlen);
+       int setsockopt(int sockfd, int level, int optname,
+                      const void *optval, socklen_t optlen);
+
+DESCRIPTION
+       getsockopt()  and  setsockopt() manipulate options for the socket referred to by the file descriptor sockfd.  Options may exist at multiple protocol levels; they
+       are always present at the uppermost socket level.
+
+       When manipulating socket options, the level at which the option resides and the name of the option must be specified.  To manipulate options at the  sockets  API
+       level, level is specified as SOL_SOCKET.  To manipulate options at any other level the protocol number of the appropriate protocol controlling the option is sup‐
+       plied.  For example, to indicate that an option is to be interpreted by the TCP protocol, level should be set to the protocol number of TCP; see getprotoent(3).
+
+       The arguments optval and optlen are used to access option values for setsockopt().  For getsockopt() they identify a buffer in which the value for the  requested
+       option(s)  are  to be returned.  For getsockopt(), optlen is a value-result argument, initially containing the size of the buffer pointed to by optval, and modi‐
+       fied on return to indicate the actual size of the value returned.  If no option value is to be supplied or returned, optval may be NULL.
+
+       Optname and any specified options are passed uninterpreted to the appropriate protocol module for interpretation.  The include file <sys/socket.h> contains defi‐
+       nitions for socket level options, described below.  Options at other protocol levels vary in format and name; consult the appropriate entries in section 4 of the
+       manual.
+
+       Most socket-level options utilize an int argument for optval.  For setsockopt(), the argument should be nonzero to enable a boolean option, or zero if the option
+       is to be disabled.
+
+       For a description of the available socket options see socket(7) and the appropriate protocol man pages.
+
+RETURN VALUE
+       On success, zero is returned for the standard options.  On error, -1 is returned, and errno is set appropriately.
+```
+
+### 参考
+- [車輪のx発明 ~B.G's Blog~](https://bg1.hatenablog.com/entry/2015/08/19/210000)
+
+### gethostbyaddr()
+- man を確認する。
+
+```bash
+SYNOPSIS
+       #include <netdb.h>
+       extern int h_errno;
+
+       #include <sys/socket.h>       /* for AF_INET */
+       struct hostent *gethostbyaddr(const void *addr,
+                                     socklen_t len, int type);
+
+DESCRIPTION
+       The gethostbyname*(), gethostbyaddr*(), herror(), and hstrerror() functions are obsolete.  Applications should use getaddrinfo(3), getnameinfo(3),  and  gai_str‐
+       error(3) instead.
+
+       The  gethostbyaddr()  function  returns a structure of type hostent for the given host address addr of length len and address type type.  Valid address types are
+       AF_INET and AF_INET6.  The host address argument is a pointer to a struct of a type depending on the address type, for  example  a  struct  in_addr  *  (probably
+       obtained via a call to inet_addr(3)) for address type AF_INET.
+
+RETURN VALUE
+       The  gethostbyname()  and  gethostbyaddr()  functions return the hostent structure or a null pointer if an error occurs.  On error, the h_errno variable holds an
+       error number.  When non-NULL, the return value may point at static data, see the notes below.
+```
+
+### getservbyport()
+- man を確認する。
+
+```bash
+SYNOPSIS
+       #include <netdb.h>
+
+       struct servent *getservbyport(int port, const char *proto);
+
+DESCRIPTION
+       The  getservbyport() function returns a servent structure for the entry from the database that matches the port port (given in network byte order) using protocol
+       proto.  If proto is NULL, any protocol will be matched.  A connection is opened to the database if necessary.
+
+RETURN VALUE
+       The  getservent(),  getservbyname() and getservbyport() functions return a pointer to a statically allocated servent structure, or NULL if an error occurs or the
+       end of the file is reached.
+
+FILES
+       /etc/services
+              services database file
+```

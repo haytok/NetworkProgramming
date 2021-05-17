@@ -652,3 +652,44 @@ main(int argc, char *argv[])
        should be deleted using unlink(2) or remove(3) */
 }
 ```
+
+## UDP Client と UDP Server をインクリメンタルに実装していく
+- [ ] UDP Client が UDP Server に固定のメッセージを送り、サーバ側で送信されたメッセージを出力する。
+  - UDP Client の実装で必要なこと
+    - socket()
+    - sendto()
+      - struct sockaddr_in オブジェクトを作成する。
+      - inet_addr() (ネットワークアドレスをネットワークバイトオーダに変換する)
+      - htons()
+    - recvfrom()
+      - サーバ側からメッセージが飛んでくるまで、それ以降の処理がブロックされる ???
+  - UDP Server の実装で必要なこと
+    - socket()
+    - bind()
+      - bind するサーバの情報を作成して socket オブジェクトに紐付ける。
+    - recvfrom()
+- [ ] UDP Server が UDP Client からのメッセージを受け取ると返答を返し、その返答を UDP Client で表示する。
+  - UDP Client の実装で必要なこと
+    - 特になし
+  - UDP Server の実装で必要なこと
+    - sendto()
+- [ ] UDP Client 側で、固定のメッセージを送信するのではなく。標準入力から受け取った値を送信するように修正する。
+
+### 実装途中でエラーが出た
+- Bad Address のエラーが生じた。`recvfrom()` の第二引数と第三引数の指定が悪かった。本通りに以下のように予め指定したサイズの領域を確保する必要があった。
+
+```c
+#define BUFSIZE 
+char recv_buf[BUFSIZE];
+recvfrom(s, recv_buf, )
+```
+
+### コミットの過程
+- Phase 1
+  - [bdea34def25204c5b86df90097f3549e3ce4ef94](https://github.com/dilmnqvovpnmlib/NetworkProgramming/commit/bdea34def25204c5b86df90097f3549e3ce4ef94)
+
+- Phase 2
+
+
+- Phase 3
+

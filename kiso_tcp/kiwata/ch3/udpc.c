@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #define DEFAULT_PORT 5320
+#define BUF_SIZE 32768
 
 void die(char *msg);
 
@@ -84,10 +85,12 @@ int main(int argc, char **argv) {
         // 呼び出し前に、呼び出し元は src_addr に割り当てたバッファで初期化しておくべきである。
         // 呼び出し元が送信アドレスを必要としない場合には、src_addr と addrlen には NULL を指定するべきである。
         ssize_t n;
-        char *recv_buf;
-        if ((n = recvfrom(s, recv_buf, strlen(recv_buf), 0, NULL, NULL)) < 0) {
+        char *recv_buf[BUF_SIZE];
+        int zero = 0;
+        if ((n = recvfrom(s, recv_buf, BUF_SIZE, 0, (struct sockaddr *) 0, &zero)) < 0) {
             die("recvfrom");
         }
+        printf("recv_buf %s/n", recv_buf);
     }
     close(s);
 

@@ -49,6 +49,12 @@ int main(int argc, char **argv) {
     ) {
         rcv_buf[rn] = '\0';
         printf("rcv_buf %s\n", rcv_buf);
+
+        // UDP Client に送信処理
+        char *send_buf = "send_buf";
+        if (sendto(s, send_buf, strlen(send_buf), 0, (struct sockaddr *) &client, len) < 0) {
+            die("sendto");
+        }
     }
     close(s);
 

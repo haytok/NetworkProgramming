@@ -50,16 +50,37 @@ int main(int argc, char **argv) {
 
     printf("Connected\n");
 
-    // while (true) {
-    //     puts("hello");
-    //     send_buf[0] = '1';
-    //     send_buf[1] = '\0';
-    //     if (send(s, send_buf, strlen(send_buf), 0) < 0) {
-    //         die("send");
-    //     }
-    // }
+    while (true) {
+        char *buf = "Hayato Kiwata\n";
+        if (fgets(send_buf, BUF_SIZE - 2, stdin) == NULL) {
+            break;
+        }
+        if (send(s, send_buf, strlen(send_buf), 0) < 0) {
+            die("send");
+        }
 
-    close(s);
 
-    return 0;
+        char recv_buf[BUF_SIZE];
+        while (true) {
+            int i;
+            recv_buf[0] = '\0';
+            for (i = 0; i < BUF_SIZE - 1; i++) {
+                if (recv(s, &recv_buf[i], 1, 0) < 0) {
+                    goto exit_loop;
+                }
+                if (recv_buf[i] == '\n') {
+                    break;
+                }
+            }
+            printf("In Client, %s\n", recv_buf);
+            break;
+        }
+
+        printf("Received message is %s\n", recv_buf);
+    }
+    exit_loop:
+        printf("End");
+        close(s);
+
+        return 0;
 }

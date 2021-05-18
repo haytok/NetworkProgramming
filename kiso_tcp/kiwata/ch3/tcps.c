@@ -59,6 +59,7 @@ int main(int argc, char **argv) {
         printf("Connected from %s\n", inet_ntoa(client.sin_addr));
 
         while (true) {
+            printf("Start\n");
             char recv_buf[BUF_SIZE];
 
             int i;
@@ -70,8 +71,14 @@ int main(int argc, char **argv) {
                 if (recv_buf[i] == '\n') {
                     break;
                 }
+                printf("recv string %d\n", recv_buf[i]);
             }
+            recv_buf[i] = '\0';
             printf("Received message is %s\n", recv_buf);
+            char *send_buf = "send buf\n";
+            if (send(s, send_buf, strlen(send_buf), 0) < 0) {
+                die("send");
+            }
         }
         exit_loop:
             printf("Connection closed\n");

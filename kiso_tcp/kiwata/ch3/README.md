@@ -1,31 +1,38 @@
 # 概要
+
 - 基礎からわかるTCP/IP ネットワーク実験プログラミング（第2版）を読んで、調査・検証したり、実装して得た知見をまとめていく。
 
 ## C 言語における # と ## 演算子について
+
 - `##` は、トークン連結演算子と呼ばれる。二つのトークンを結合して置き換えることができる。これは、通常のマクロと関数マクロで使用することができる。
+
 - 例えば、`a ## 1` とすると、結合して `a1` に置き換えられる。
 
 - `#` は、文字列化演算子と呼ばれる。マクロ関数で受け取った値に対して、`#` を付けることで、文字列つまりダブルクオテーションを付けた状態に置き換える。
 
 ### 検証プログラム
+
 - `test_0.c`
 
 ### 参考
+
 - [#と##演算子](http://wisdom.sakura.ne.jp/programming/c/c42.html)
 
-
 ## プリプロセッサを使ってマルチプラットフォーム対応を行う
+
 - `#ifdef __linux` を使用してコンパイル時にプラットフォームによって条件分岐を行う。
 
 ### 検証プログラム
+
 - `test_1.c`
 
 ### 参考
+
 - [C言語でLinux、Solaris向け処理を#ifdefで分岐](https://mokky14.hatenablog.com/entry/2013/05/29/113244)
 - [第14回 ヘッダファイルとプリプロセッサ指令](https://dev.grapecity.co.jp/support/powernews/column/clang/014/page02.htm)
 
-
 ## 3 章で作成する UDP Client のプログラムを実装する際に必要なシステムコール
+
 - [ ] select() (今回のプログラムでは、UDP のクライアント側で呼出されている。)
 - [ ] sendto()
 - [ ] recvfrom()
@@ -38,6 +45,7 @@
 - getservbyport()
 
 ### select()
+
 - man を確認する。
 - 第二引数の readfds には、recv や recvfrom による受信を検査する fd を指定する。
 
@@ -104,22 +112,31 @@ EXAMPLE
 ```
 
 - `fd_set` は、ファイルディスクリプタの集合を表す。
+
 - `FD_ZERO(&fds)` は、初期化 (集合を空にする) するヘルパーマクロである。
+
 - `FD_SET(fd, &fds)` は、fd を集合に加える。
+
 - `FD_CLR(fd, &fds)` は、fd を集合から取り除く。
+
 - `FD_ISSET(fd, &fds)` は、fd がその集合に含まれているかを確認する。
 
 - `#define FD_SETSIZE 1024` のマクロがどこかで定義されている。
 
 #### 参考
+
 - [SELECT](https://linuxjm.osdn.jp/html/LDP_man-pages/man2/select.2.html)
-- [[C言語] ライブラリの関数などメモ](https://qiita.com/edo_m18/items/7414028fd91269e5427d#select)
+
+- [\[C言語\] ライブラリの関数などメモ](https://qiita.com/edo_m18/items/7414028fd91269e5427d#select)
 
 - [selectを使う](https://www.geekpage.jp/programming/linux-network/select.php)
+
 - [システムプログラム（第8週）: select()による複数のクライアントに対するサービスの同時提供](http://www.coins.tsukuba.ac.jp/~syspro/2013/2013-06-05/echo-server-select.html)
+
 - [C 言語で echo サーバを作ってみよう (2)](http://x68000.q-e-d.net/~68user/net/c-echo-2.html)
 
 ### sendto()
+
 - man を確認する。
 - `sendoto()` を呼び出す時に、キャストする `struct sockaddr` とは後述で説明している。
 - もとの変数の型は、`struct sockaddr_in` である。
@@ -204,9 +221,11 @@ struct sockaddr_inに値をセットするほうが簡単です。
 ```
 
 #### 参考
+
 - [sockadrr構造体 sockadrr_in構造体について](https://teratail.com/questions/210977)
 
 ### recvfrom()
+
 - man を確認する。
 
 ```bash
@@ -223,8 +242,8 @@ RETURN VALUE
        These calls return the number of bytes received, or -1 if an error occurred.  In the event of an error, errno is set to indicate the error.
 ```
 
-
 ### inet_addr()
+
 - man を確認する。
 - つまり、IP アドレスからネットワークバイトオーダのバイナリに変換する。適切に変換できない時は、`INADDR_NONE` が返る。
 - 少し別の言い方をすると、この関数は、人間にとって可読性のある 192.168.11.6 などの IP アドレスをプロトコルスタックで必要なネットワークバイトオーダのバイナリに変換するためのライブラリ関数である。
@@ -245,6 +264,7 @@ DESCRIPTION
 - `/usr/include/netinet/in.h` に `typedef uint32_t in_addr_t` と定義されている。これは、前述で調査した `sockaddr_in.sin_addr.s_addr` のメンバに格納される。型も一致している。
 
 ### gethostbyname()
+
 - man を確認する。
 
 ```bash
@@ -311,6 +331,7 @@ RETURN VALUE
 ```
 
 ### getservbyname()
+
 - man を確認する。
 
 ```bash
@@ -350,6 +371,7 @@ RETURN VALUE
 ```
 
 ### ntohs()
+
 - man を確認する。
 
 ```bash
@@ -363,10 +385,12 @@ DESCRIPTION
 ```
 
 ## 3 章で作成する UDP Server のプログラムを実装する際に必要なシステムコール
+
 - htonl()
 - bind()
 
 ### bind()
+
 - man を確認する。
 - 以下の `bind()` の第二引数を確認すると、クライアント側の `sendto()` のように `sockaddr_in` 型のオブジェクトを作成する必要がある。
 
@@ -380,6 +404,7 @@ SYNOPSIS
 ```
 
 ### htonl(INADDR_ANY)
+
 - man を確認する。
 - Client 側のコードを書くときはお目にかからなかったコードであるが、これは、どのアドレスからリクエストが飛んできても処理をするという意味である。一方で、IP を指定すると、そのアドレス (から/へ) しか受け付けない設定である。
 
@@ -396,12 +421,14 @@ DESCRIPTION
 ## 3 章で作成する TCP Client のプログラムを実装する際に必要なシステムコール
 
 ## 3 章で作成する TCP Server のプログラムを実装する際に必要なシステムコール
+
 - listen()
 - accept()
 - send()
 - recv()
 
 ### listen()
+
 - man を確認する。
 - 第二引数の `backlog` は、接続保留中のキューの最大長を定義する。このパラメータで設定した値より大きい数の接続要求が来ると、クライアント側は `ECONNREFUSED` を受け取る。つまり、`accept` されるのを待っているソケットの数のことを表しているとも言える。
 
@@ -449,6 +476,7 @@ NOTES
 ```
 
 ### accept()
+
 - man を確認する。
 
 ```bash
@@ -466,6 +494,7 @@ RETURN VALUE
 ```
 
 ### recv()
+
 - man を確認する。
 
 ```bash
@@ -484,6 +513,7 @@ RETURN VALUE
 ```
 
 ### send()
+
 - まず、いつも通りに man を確認する。
 
 ```bash
@@ -528,18 +558,22 @@ RETURN VALUE
 ```
 
 ### listen() の第二引数の backlog パラメータについての検証
+
 - backlog パラメータはカーネルパラメータとして決まっていて、デフォルトでは 128 が設定されている。
 - ss コマンドを使用して backlog パラメータを変更した時に同時接続できるクライアント数がどれくらいになるのかを Python コードで検証している興味深い記事である。
 
 #### 参考
+
 - [Linuxのbacklogについて調べてみる](https://kazuhira-r.hatenablog.com/entry/2019/07/10/015733)
+
 - [ssコマンドのRecv-Qが、backlog＋1の値まで上がるのはどうして？](https://kazuhira-r.hatenablog.com/entry/2019/07/27/200040)
 
 - [Socket()とかBind()とかを理解する](https://qiita.com/Michinosuke/items/0778a5344bdf81488114)
+
 - [コネクション型通信：サーバプログラムの作成](http://research.nii.ac.jp/~ichiro/syspro98/server.html)
 
-
 ### setsockopt()
+
 - man を確認する。
 - サーバーで同じポート番号で bind を繰り返すとエラーが出る。`setsockopt` を使うと、このエラーをエスケープすることができる。
 - また、書籍では、TCP のウィンドウサイズを変更する際にも使用できると記述があった。
@@ -580,9 +614,11 @@ RETURN VALUE
 ```
 
 ### 参考
+
 - [車輪のx発明 ~B.G's Blog~](https://bg1.hatenablog.com/entry/2015/08/19/210000)
 
 ### gethostbyaddr()
+
 - man を確認する。
 
 ```bash
@@ -608,6 +644,7 @@ RETURN VALUE
 ```
 
 ### getservbyport()
+
 - man を確認する。
 
 ```bash
@@ -630,6 +667,7 @@ FILES
 ```
 
 ## クライアント側で bind() を行うかどうかについて
+
 - 書籍 p.101, p.108 に記述がある。
 - UCP, TCP で通信をする際に、クライアント側では bind() を省略するのが一般的である。
 - クライアント側のポート番号は、最初に sendto() / send() した段階で OS が自動的に割り当てる。ただし、IP アドレスは固定されない。
@@ -692,6 +730,7 @@ main(int argc, char *argv[])
 ```
 
 ## UDP Client と UDP Server をインクリメンタルに実装していく
+
 - [ ] UDP Client が UDP Server に固定のメッセージを送り、サーバ側で送信されたメッセージを出力する。
   - UDP Client の実装で必要なこと
     - socket()
@@ -714,8 +753,8 @@ main(int argc, char *argv[])
 - [ ] UDP Client 側で、固定のメッセージを送信するのではなく。標準入力から受け取った値を送信するように修正する。
   - select() を使って標準入力とソケットの受信を選択するようにする。
 
-
 ### 実装途中でエラーが出た
+
 - Bad Address のエラーが生じた。`recvfrom()` の第二引数と第三引数の指定が悪かった。本通りに以下のように予め指定したサイズの領域を確保する必要があった。
 
 ```c
@@ -725,6 +764,7 @@ recvfrom(s, recv_buf, )
 ```
 
 ### コミットの過程
+
 - Phase 1
   - [bdea34def25204c5b86df90097f3549e3ce4ef94](https://github.com/dilmnqvovpnmlib/NetworkProgramming/commit/bdea34def25204c5b86df90097f3549e3ce4ef94)
 
@@ -733,3 +773,35 @@ recvfrom(s, recv_buf, )
 
 - Phase 3
   - [1d66c652fea7352c7cbd934cfaff217b2e298b78](https://github.com/dilmnqvovpnmlib/NetworkProgramming/commit/1d66c652fea7352c7cbd934cfaff217b2e298b78)
+
+## TCP Client と TCP Server をインクリメンタルに実装していく
+
+- [ ] TCP Server でコネクションを張る準備
+  - socket()
+    - ソケットを開く。
+  - bind()
+    - ポート番号やアドレスなどのサーバの情報を紐付ける。
+  - listen()
+    - コネクションの受付を開始する。
+  - accept()
+    - コネクションを受け付ける。
+- [ ] TCP Client でコネクションを確立する準備
+  - socket()
+    - ソケットを開く。
+  - connect()
+    - コネクションを確立する。
+- [ ] TCP Client からコマンドを送信
+  - 送信メッセージを作成する。
+  - send()
+- [ ] TCP Server でコマンドを受信し、返答
+  - recv()
+  - 受信メッセージを解析する。
+  - send()
+- [ ] TCP Client からコネクションを閉じるコマンドの送信
+  - 送信メッセージを作成する。
+  - send()
+  - close()
+- [ ] TCP Server でコネクションを閉じる
+  - recv()
+  - 受信メッセージを解析する。
+  - close()

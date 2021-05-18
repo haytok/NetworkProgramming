@@ -1,5 +1,11 @@
 {
     "files.associations": {
         "tcp.h": "c"
+    },
+    "remark.format": {
+        "rules": {
+            "listItemIndent": 1,
+            "fences": true
+        }
     }
 }

@@ -805,3 +805,65 @@ recvfrom(s, recv_buf, )
   - recv()
   - 受信メッセージを解析する。
   - close()
+
+## man 7
+
+- 定義されているマクロ (ex. INADDR_ANY) を調べることができる。(できるだけ Web で検索をかけずに実装してきたい。時間的な観点からも生産性が上がり、実装する際の手順を画一的にすることができる。)
+
+- ex) man 7 ip
+
+### 疑問
+
+- socket() を呼び出して、エラーが生じた場合、ソケットを close() する必要があるんかと思った。
+- man で socket() の返り値を確認してみると、以下のような記述がされていた。
+- 成功すれば新しくソケットの fd を返し、失敗すれば -1 を返すと解釈できる。つまり、そもそもソケットの fd が返ってきてないから、close() のしようが無い認識で合ってる？？？
+
+```bash
+RETURN VALUE
+       On success, a file descriptor for the new socket is returned.  On error, -1 is returned, and errno is set appropriately.
+```
+
+## connect() を呼び出した後に send() をしないと処理ばブロックされる
+
+- main 関数が以下の状態だと、while 文にまで処理が進まない。
+
+```c
+int main(int argc, char **argv) {
+    int s;
+    struct sockaddr_in server;
+    char *address;
+    in_addr_t dest_ip;
+    int port;
+    char send_buf[BUF_SIZE];
+
+    s = socket(AF_INET, SOCK_STREAM, 0);
+    if (s < 0) {
+        die("socket");
+    }
+
+    address = DEFAULT_DEST_ADDRESS;
+    dest_ip = inet_addr(address);
+    port = DEFAULT_PORT;
+
+    memset(&server, 0, sizeof(server));
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = htonl(dest_ip);
+    server.sin_port = htons(port);
+    if (connect(s, (struct sockaddr *) &server, sizeof(server)) < 0) {
+        die("connect");
+    }
+
+    while (true) {
+        puts("hello");
+    }
+
+    close(s);
+
+    return 0;
+}
+```
+
+## プログラムを変更した時の手順
+- TCP Client のプログラムを停止させる。
+- TCP Server のプログラムを停止させる。
+- この順でプログラムを止めないと、`bind: Address alreay in use` のエラーが生じてしまう。

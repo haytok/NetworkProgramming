@@ -141,6 +141,7 @@ enum {
   - bin(8>>1) -> '0b100'
 
 ### MTU とは
+
 - MTU とは送ろうことができる最大のペイロード長のことである。この長さはデータリンク毎に決まっている。
 - tot_len > MTU の時は、フラグメント処理をする必要がある。
 - おそらく、MTU は Ethernet のヘッダを除いた長さであるので、tot_len と比較しても問題ない。
@@ -150,6 +151,85 @@ enum {
 - [RFC 791: INTERNET PROTOCOL](https://datatracker.ietf.org/doc/html/rfc791)
 
 ## ICMP パケット構造体
+
+- この節では、以下の ICMP を紹介する。
+  - ICMP エコー要求 (タイプ 8)
+  - ICMP エコー応答 (タイプ 0)
+  - ICMP 到達不能 (タイプ 3)
+  - ICMP リダイレクト (タイプ 5)
+  - ICMP 時間超過 (タイプ 11)
+
+- これらの定義は、`/usr/include/netinet/ip_icmp.h` に定義されている。
+
+```c
+#define ICMP_ECHOREPLY 0
+#define ICMP_DEST_UNREACH 3
+#define ICMP_REDIRECT 5
+#define ICMP_ECHO 8
+#define ICMP_TIMXCEED 11
+```
+
+- このように、ICMP のヘッダ構造は 1 種類ではなく、複数の形式がある。このため、ICMP ヘッダは共用体を用いて表現される。
+
+- ICMP 構造体は、`/usr/include/netinet/ip_icmp.h` に定義されている。
+
+```c
+struct icmp {
+    uint8_t icmp_type;
+    uint8_t icmp_code;
+    uint16_t icmp_cksum;
+
+    union {
+        unsigned char ih_pptr;
+        struct in_addr ih_gwaddr; // ICMP リダイレクトメッセージで使われる。
+        struct ih_idseq {
+            uint16_t icd_id;
+            uint16_t icd_seq;
+        } ih_idseq; // ICMP エコー要求と ICMP エコー応答メッセージで使われる。
+        uint32_t ih_void; // ICMP 時間超過メッセージ (ttl) で使われる。
+
+        struct ih_pmtu {
+            uint16_t ipm_void;
+            uint16_t ipm_nextmtu;
+        } ih_pmtu; // ICMP 到達不能メッセージで使われる。
+
+        struct ih_rtradv {
+            uint8_t irt_num_addrs;
+            uint8_t irt_wpa;
+            uint16_t irt_lifetime;
+        } ih_rtradv;
+    } icmp_hun;
+    #define icmp_pptr icmp_hun.ih_pptr;
+    ... (#define が続く)
+
+    union {
+        struct {
+            uint32_t its_otime;
+            uint32_t its_rtime;
+            uint32_t its_ttime;
+        } id_ts;
+        struct {
+            struct ip idi_ip;
+        } id_ip;
+        struct icmp_ra_addr id_radv;
+        uint32_t id_mask;
+        uint8_t id_data[1]; // 大抵このフィールが使用される。
+    } icmp_dun;
+    # define icmp_otime icmp.id_ts.its_otime
+    (#define が続く)
+}
+```
+
+### ICMP エコー要求と ICMP エコー応答メッセージ
+
+- `icmp_code` には、以下で (前述にもある。) 定義されるマクロを代入する。
+- どのタイプにも共通することだが、`icmp_code` は コメントの `/* Codes for REDIRECT */` に定義されている。つまり、`icmp_type` に紐づいて `icmp_code` がある。
+
+```c
+/* Definition of type and code field. */
+/* defined above: ICMP_ECHOREPLY, ICMP_REDIRECT, ICMP_ECHO */
+#define ICMP_UNREACH 3
+```
 
 ## UDP ヘッダとヘッダ構造体について
 

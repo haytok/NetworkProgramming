@@ -99,6 +99,56 @@ e_h.ehter_type = ETHERTYPE_ARP;
 
 ## IP ヘッダとヘッダ構造体について
 
+- IP ヘッダの構造体は `/usr/include/netinet/ip.h` で定義されている。
+- 上位層のプロトコルを表す `protocol` は、`/usr/include/netinet/in.h` で定義されている。
+
+```c
+struct iphdr {
+    #if __BYTE_ORDER == __LITTLE_ENDIAN
+        unsigned int ihl;4;
+        unsigned int version:4;
+    #elif __BYTE_ORDER == __BIG_ENDIAN
+        unsigned int version:4;
+        unsigned int ihl:4;
+    #else
+    # error "Please fix <bits/endian.h>"
+    #endif
+        uint8_t tos;
+        uint16_t tot_len;
+        uint16_t id;
+        uint16_t frag_off;
+        uint8_t ttl;
+        uint8_t protocol;
+        uint16_t check;
+        uint32_t saddr;
+        uint32_t daddr;
+};
+```
+
+```c
+enum {
+    IPPROTO_ICMP = 1,
+    #define IPPROTO_ICMP IPPROTO_ICMP
+    ...
+};
+```
+
+### bit 演算について
+
+- Python の `bin(8<<1)` の演算は左シフトと言う。
+  - bin(8&lt;&lt;1) ->'0b10000'
+- Python の `bin(8>>1)` の演算は右シフトと言う。
+  - bin(8>>1) -> '0b100'
+
+### MTU とは
+- MTU とは送ろうことができる最大のペイロード長のことである。この長さはデータリンク毎に決まっている。
+- tot_len > MTU の時は、フラグメント処理をする必要がある。
+- おそらく、MTU は Ethernet のヘッダを除いた長さであるので、tot_len と比較しても問題ない。
+
+### 参考
+
+- [RFC 791: INTERNET PROTOCOL](https://datatracker.ietf.org/doc/html/rfc791)
+
 ## ICMP パケット構造体
 
 ## UDP ヘッダとヘッダ構造体について

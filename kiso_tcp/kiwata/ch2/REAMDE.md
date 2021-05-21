@@ -233,4 +233,87 @@ struct icmp {
 
 ## UDP ヘッダとヘッダ構造体について
 
+- UDP ヘッダ構造体は、`/usr/include/netinet/udp.h` に定義されている。
+
+```c
+struct udphdr {
+    __extension__ union
+    {
+        struct {
+            uint16_t uh_sport;
+            uint16_t uh_dport;
+            uint16_t uh_ulen;
+            uint16_t uh_sum;
+        };
+        struct {
+            uint16_t source;
+            uint16_t dest;
+            uint16_t len;
+            uint16_t check;
+        };
+    }
+};
+```
+
 ## TCP ヘッダとヘッダ構造体について
+
+- TCP ヘッダ構造体は、 `/usr/include/netinet/tcp.h` 定義されている。
+
+```c
+struct tcphdr {
+    __extension__ union
+    {
+        struct {
+            uint16_t th_sport; // 始点ポート番号
+            uint16_t th_dport; // 終点ポート番号
+            tcp_seq th_seq; // シーケンス番号
+            tcp_set th_ack; // 確認応答番号
+            # if __BYTE_ORDER == __LITTLE_ENDIAN
+                uint8_t th_x2:4; // 未使用
+                uint8_t th_off:4; // データオフセット
+            # endif
+            # if __BYTE_ORDER == __BIG_ENDIAN
+                uint8_t th_off:4;
+                uint8_t th_x2:4;
+            # endif
+            uint8_t th_flags; // コントロールフラグ (フィールドの値は以下のマクロで定義されている。)
+
+            #define TH_FIN 0x01
+            #define TH_SYN 0x02
+            #define TH_RST 0x04
+            #define TH_PUSH 0x08
+            #define TH_ACK 0x10
+            #define TH_URG 0x20
+
+            uint16_t th_win; // ウィンドウサイズ
+            uint16_t th_sum; // チェックサム
+            uint16_t th_urp; // 緊急ポインタ
+        };
+        struct {
+            uint16_t source;
+            uint16_t dest;
+            uint16_t seq;
+            uint16_t ack_seq;
+
+            #if __BYTE_ORER == __LITTLE_ENDIAN
+                uint16_t res1:4;
+                uint16_t doff:4;
+                uint16_t fin:1;
+                uint16_t syn:1;
+                uint16_t rst:1;
+                uint16_t psh:1;
+                uint16_t ack:1;
+                uint16_t arg:1;
+                uint16_t rst2:1;
+            #elif __BYTE_ORER == __BIG_ENDIAN
+                ...
+            #else
+            #error "Adjust your <bits/endian.h> defines"
+            #endif
+                uint16_t window;
+                uint16_t check;
+                uint16_t urg_ptr;
+        };
+    };
+};
+```

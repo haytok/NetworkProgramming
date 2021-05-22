@@ -84,15 +84,15 @@ int main(int argc, char **argv) {
         }
 
         /* ヘッダを表示する */
-        // print_ethernet(eth);
+        print_ethernet(eth);
         if (ntohs(eth->ether_type) == ETHERTYPE_ARP) {
-            // print_arp(arp);
+            print_arp(arp);
         } else if (ntohs(eth->ether_type) == ETHERTYPE_IP) {
-            // print_ip(ip);
+            print_ip(ip);
             if (ip->ip_p == IPPROTO_TCP) {
-                // print_tcp(tcp);
+                print_tcp(tcp);
             } else if (ip->ip_p == IPPROTO_UDP) {
-                // print_udp(udp);
+                print_udp(udp);
             } else if (ip->ip_p == IPPROTO_ICMP) {
                 print_icmp(icmp);
             }

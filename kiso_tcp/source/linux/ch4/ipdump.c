@@ -215,6 +215,7 @@ int main(int argc, char **argv)
     gettimeofday(&tv, (struct timezone *) 0);
     localtime_r((time_t *) &tv.tv_sec, &tm);
     /* Ethernetヘッダの先頭にポインタをセット */
+    // p がパケットのヘッダの先頭アドレスで、各ヘッダサイズを足すことで、ヘッダの先頭アドレスを求める。
     p = p0 = buff;
 
     /*

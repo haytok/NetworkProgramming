@@ -1,6 +1,7 @@
 # 概要
 
 - 基礎からわかるTCP/IP ネットワーク実験プログラミング（第2版）の 5 章を読んで、調査・検証したり、実装して得た知見をまとめていく。
+- 実装の方針としては、ホストをスキャンするための最小のプログラムである。
 
 ## scanhost.c に関して
 
@@ -29,6 +30,7 @@
 ### socket() システムコールの第三引数 protocol に代入する関数に関して
 
 #### 背景と目的
+
 - `scanhost.c` のプログラムを実装する際に、socket() の第三引数に入れる値を迷ったので、ログに残す。
 
 #### 方法と結論
@@ -78,6 +80,18 @@ FILES
 
 - `/etc/protocol` にもプロトコル番号が定義されている。おそらく、Kernel がファイルシステムの設定ファイルの値を読み込み、ヘッダファイルに設定していると推測できる。だが、キチンと調査していないので、今後の課題としたい。
 - また、5 番はファイルフォーマットの説明を表す。
+
+### sockaddr_in の定義箇所を探す。
+
+- まず、 `find /usr/include/net* -type f -print | xargs grep struct sockaddr_in {` を実行する。
+- `/usr/include/netdb.h` が怪しそうなので、見に行く。しかし、定義が見つからないので、Include ファイルを参考に、次は `#include <netinet/in.h>` を見に行く。
+- `/usr/include/netinet/in.h` を見ると、`struct sockaddr_in` が見つかる。そして、そのメンバに `struct in_addr sin_addr;` があるのを確認できる。
+- また、`inet_ntoa` の引数は、`struct in_addr in` であるから、`sockaddr_in` オブジェクトの `sin_addr` を `inet_ntoa` に引き渡すと、IP アドレスを取得できる。
+
+### 実装していないこと
+
+- Broadcast パケットは受信する設定にしていない。
+- RTT を計算し表示する機能は実装していない。
 
 ### 参考
 

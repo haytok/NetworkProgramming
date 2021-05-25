@@ -90,6 +90,7 @@ FILES
 
 ### 実装していないこと
 
+- 入力された IP アドレスが適したフォーマットかどうかのバリデーションをしていない。
 - Broadcast パケットは受信する設定にしていない。
 - RTT を計算し表示する機能は実装していない。
 
@@ -100,8 +101,94 @@ FILES
 
 ## scanport_tcp.c に関して
 
-- 特になし。
+### 実装途中でのポイント
+
+1. connect や sendto など `struct sockaddr_in` 型のオブジェクトを引数に渡す時は、キャストするのを忘れないようにする。
+
+> // server オブジェクトは connect する際に、キャストする必要がある。
+
+> // したがって、関数の引数として切り出す際は、参照渡しではなく値渡しで渡す。
+
+> if (connect(s, (struct sockaddr \*) &server, sizeof(server)) &lt; 0) {
+
+2. オブジェクトの NULL チェックは忘れない。
+
+> // サービス名が存在しない時は、NULL が返るので NULL チェックが必要。
+
+> printf("Port %d -> %s\\n", port, (sv != NULL) ? sv->s_name : "uknown");
+
+3. ネットワークバイトオーダに変換する。
+
+> // htons でネットワークバイトオーダに変換しないと、正常に動作しない。
+
+> server.sin_port = htons(port);
+
+> // 第一引数を int 型から htons を使ってキャストする必要がある。
+
+> sv = getservbyport(htons(port), NULL);
+
+4. getservbyport 関数の第二引数に渡すサービス名は NULL でも構わない。
+
+> // 第二引数は、NULL でも正常に動作する。
+
+> sv = getservbyport(htons(port), NULL);
+
+### getservbyport 関数について
+
+- man を確認する。
+- 第二引数に何を入れるべきかを考えていた。man には、引数の二つの値をもとに database ファイルの `/etc/services` に検索をかけ、サービスを取得できると記述されている。したがって、第二引数には NULL または tcp or udp を入れると正常に動作すると考えられる。
+
+```bash
+SYNOPSIS
+       #include <netdb.h>
+
+       struct servent *getservbyport(int port, const char *proto);
+
+DESCRIPTION
+       The  getservbyport() function returns a servent structure for the entry from the database that matches the port port (given in network byte order) using protocol
+       proto.  If proto is NULL, any protocol will be matched.  A connection is opened to the database if necessary.
+
+FILES
+       /etc/services
+              services database file
+```
+
+- `/etc/services`  の中身
+
+```bash
+# Network services, Internet style
+#
+# Note that it is presently the policy of IANA to assign a single well-known
+# port number for both TCP and UDP; hence, officially ports have two entries
+# even if the protocol doesn't support UDP operations.
+#
+# Updated from http://www.iana.org/assignments/port-numbers and other
+# sources like http://www.freebsd.org/cgi/cvsweb.cgi/src/etc/services .
+# New ports will be added on request if they have been officially assigned
+# by IANA and used in the real-world or are needed by a debian package.
+# If you need a huge list of used numbers please install the nmap package.
+
+tcpmux		1/tcp				# TCP port service multiplexer
+echo		7/tcp
+echo		7/udp
+discard		9/tcp		sink null
+discard		9/udp		sink null
+systat		11/tcp		users
+daytime		13/tcp
+daytime		13/udp
+netstat		15/tcp
+qotd		17/tcp		quote
+msp		18/tcp				# message send protocol
+msp		18/udp
+chargen		19/tcp		ttytst source
+chargen		19/udp		ttytst source
+ftp-data	20/tcp
+ftp		21/tcp
+fsp		21/udp		fspd
+ssh		22/tcp				# SSH Remote Login Protocol
+...
+```
 
 ## scanport_udp.c に関して
 
--
+- 未実装

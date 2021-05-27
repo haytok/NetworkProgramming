@@ -245,15 +245,9 @@ void make_ip_header(struct ip *ip, int srcip, int dstip, int iplen)
   ip->ip_id  = htons(0);
   ip->ip_off = 0;
 
-#ifdef __linux
   /* Linuxのraw IPの場合 */
   ip->ip_len = htons(iplen);
   ip->ip_off = htons(0);
-#else
-  /* BSDのraw IPの場合 */
-  ip->ip_len = iplen;
-  ip->ip_off = 0;
-#endif
   ip->ip_ttl = 64;
   ip->ip_p   = IPPROTO_UDP;
   ip->ip_src.s_addr = srcip;

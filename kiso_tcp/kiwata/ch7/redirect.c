@@ -84,7 +84,7 @@ void make_ip_header(struct ip *ip, int target_ip, int dest_ip, int proto, int ip
     memset(&ip, 0, sizeof(ip)); // ここでは初期化して他ではしない理由がわからん。
 
     ip->ip_v = IPVERSION; // 4 が入ってる。
-    ip->ip_hl = sizeof(struct ip) >> 4;
+    ip->ip_hl = sizeof(struct ip) >> 2;
     ip->ip_id = htons(0);
     ip->ip_off = 0;
 

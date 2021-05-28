@@ -12,3 +12,11 @@
 - その結果に従って `/usr/include/hogehoge` とそこで include されているファイルを逐一確認しに行く。
 
 - `void make_udp_header((struct udphdr *) udp);` この記述をすると、型指定子が必要ですのエラーが生じる。
+
+## scanroute.c に関して
+
+- `socket()` の第三引数は、作成したいパケットの種類を書く？
+- `ICMP_TIMXCEED_INTRANS` は、`ttl==0 in transit` とコメントされている。
+
+- IP をドメインに変換する処理は実装していない。
+- 往復時間を計算するロジックは実装していない。
